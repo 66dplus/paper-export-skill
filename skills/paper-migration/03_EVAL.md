@@ -160,6 +160,8 @@ The task MUST be considered **FAILED** if any of the following occurs:
 * styling was manually recreated when direct export was available
 * computed styles were used as a substitute for structural export
 * an undefined state was invented
+* a node was transferred although it contradicts a recorded product decision
+* an existing test was inverted or weakened so the migration would pass
 * a backend state was designed without Paper approval
 * final visual verification was skipped
 * a second page was started while another page was still unapproved

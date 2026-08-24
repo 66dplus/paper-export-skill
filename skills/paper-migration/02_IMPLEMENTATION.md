@@ -37,6 +37,12 @@ The Paper JSX export is the primary structural reference.
 * replace elements
 * merge components merely for cleanliness
 * split components merely for abstraction
+* transfer a node that contradicts a recorded product decision
+* rewrite, invert or weaken an existing test so the migration passes
+
+The last two are not styling choices. A test that states a decision ("owner 2026-08-21: … must not
+be duplicated") outranks the artboard: leave the node out, leave the test alone, record it under
+`design_conflicts` in the state file and report it. See **Conflict resolution** in [SKILL.md](SKILL.md).
 
 ---
 
