@@ -8,6 +8,37 @@ The first implementation pass reproduces the Paper UI and **nothing else**.
 
 ---
 
+# "UI only" does not mean "inert"
+
+The line above is about *business logic*, not about whether the page works. Read as "no behaviour
+at all", it produces a screenshot with a URL: cards that do not open, inputs that do not type,
+toggles that do not toggle, a search button that searches nothing. That is not a migrated page —
+it is a mockup that happens to be served over HTTP, and **it cannot be reviewed**, because the
+only question a human can answer in front of it is whether it resembles the picture they already
+have.
+
+An affordance drawn in Paper is part of the UI, not part of the backend:
+
+```text
+in scope — a card links to the thing it depicts · inputs accept input · toggles change state
+           · a control that navigates, navigates · the active/selected state a control shows
+out of scope — new business rules · new endpoints · schema changes · auth flows
+```
+
+If reaching that bar needs the real list, the real photos or the real query, **wire them**. Reusing
+a data path the application already has is not "integrating the backend"; it is the cheapest way to
+make the page real, and it exposes what a mockup hides — an empty result, a name that overflows two
+lines, a missing photo, a slow response.
+
+The constraint that stays absolute is the visual one: **wiring data must not move the UI.** Keep
+the artboard-comparison screenshots from before the wiring and prove the geometry did not drift
+after it. That is what the reference artifacts are for.
+
+**Ship a page a human can operate.** A review of an inert page tells you nothing you did not
+already know from the export.
+
+---
+
 # JSX rules
 
 The Paper JSX export is the primary structural reference.
@@ -37,6 +68,12 @@ The Paper JSX export is the primary structural reference.
 * replace elements
 * merge components merely for cleanliness
 * split components merely for abstraction
+* transfer a node that contradicts a recorded product decision
+* rewrite, invert or weaken an existing test so the migration passes
+
+The last two are not styling choices. A test that states a decision ("owner 2026-08-21: … must not
+be duplicated") outranks the artboard: leave the node out, leave the test alone, record it under
+`design_conflicts` in the state file and report it. See **Conflict resolution** in [SKILL.md](SKILL.md).
 
 ---
 

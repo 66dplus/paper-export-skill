@@ -194,6 +194,49 @@ For an unavoidable state: derive it from the artboards you do have, record the d
 raise it with the derivation **already implemented**. Never use "Paper does not define it" as a
 reason to ship the undefined behaviour and hand the owner a question instead of a page.
 
+## "Paper does not define it" is not the same as "the human must decide it"
+
+The same confusion has a second form, and it produces question lists instead of work.
+
+Most things an artboard leaves unspecified have exactly **one** sensible answer, and it follows
+from the product rather than from taste: a Search button searches · a card links to the thing it
+depicts · a Grid/Map toggle goes to the map · an English page is in English · "Load more" loads
+more. Asking about these is not caution. It is handing back work.
+
+Run every "Paper does not say" through one test:
+
+```text
+Does the product's own logic give this exactly one reasonable answer?
+   yes → implement it, record it as a derivation, do not ask
+   no  → it is genuinely the human's call, ask
+```
+
+What survives the test is narrow: taste, strategy, money, anything irreversible, and choices
+where two answers are both defensible and lead to different products. Everything else is the job.
+
+**A report field named "owner decisions" tends to get filled.** If the deliverable asks for such
+a list, each entry must carry the reason it failed the test above — otherwise the list silently
+becomes a place to park ordinary engineering.
+
+## Artboards contain mockup artefacts, not only design intent
+
+An artboard is a drawing, and drawings carry incidental properties the designer never meant as
+spec: two languages mixed on one screen because the mockup was assembled from parts, lorem
+placeholders, a schematic count, a stray alignment. Transcribing those faithfully reproduces the
+accident, not the design.
+
+Separate the two before implementing:
+
+```text
+design intent   — the artboard states it on purpose (layout, type, colour, order, affordances)
+mockup artefact — a property of how the drawing was assembled, not of the product
+```
+
+When something reads as an artefact, resolve it from the product (a localized page is in one
+language) and record that you did. Ask only when you genuinely cannot tell which it is. Paper
+sometimes says so itself — a schematic value may carry an annotation naming it as such; read the
+annotations before treating a number as a fact.
+
 ---
 
 # RESPONSIVE CONTRACT

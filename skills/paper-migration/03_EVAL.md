@@ -90,6 +90,30 @@ Sample at minimum: **each artboard width**, plus **at least one width that is ne
 laptop viewport such as 1280. The in-between widths are where responsive defects live; the
 artboard widths are the two places guaranteed to look right.
 
+Produce a **composition table** — the whole range in one artifact, step ≤ 40px, each row naming
+what actually rendered:
+
+```text
+width   overflow   composition   columns   headline
+ 320       none      mobile         1        36px
+ …
+ 900       none      mobile         1        36px   ← a stretched band, and the table shows it
+1280       none      desktop        3      49.8px
+```
+
+Sampling three widths cannot show a *band*; the table can. It is also what stops the usual wrong
+fix — raising the breakpoint moves a stretched band instead of removing it, and the table makes
+the moved band visible immediately.
+
+### Operability
+
+A screen is not verified until it has been **operated**. Count the affordances the artboard draws
+and exercise each one in the browser: click a card and land on its target, type in the input,
+switch the toggle and see the switch, apply the sort and see the order change. Report what you
+clicked and what happened.
+
+`0 links · 0 inputs · 0 selects` under a grid of cards is a failure, not a phase boundary.
+
 ### Runtime
 no console errors · no runtime errors · build passes · TypeScript passes · the original route still works ·
 no unrelated UI changed
@@ -110,6 +134,8 @@ no unrelated UI changed
 ✓ layout / typography / appearance checks passed
 ✓ each artboard composition verified at its own artboard width
 ✓ at least one non-artboard width verified, and it rendered the composition that owns it
+✓ composition table produced across the full range — no band renders a stretched composition
+✓ the page is operable: every affordance the artboard draws was exercised in the browser
 ✓ responsive checks passed
 ✓ runtime checks passed
 ✓ portal-rendered surfaces validated in the browser (if any)
@@ -135,6 +161,9 @@ expensive to miss. **Append new cases here as they are found.**
 | 6 | **Invented empty/loading state** | The backend produced a state Paper does not define and the agent designed one. See [05_FINALIZATION.md](05_FINALIZATION.md). |
 | 7 | **Mobile composition on a desktop viewport** | The desktop breakpoint was set to where the artboard's fixed widths stop fitting, so an ordinary laptop width (1200–1380) falls into the mobile branch and renders the phone layout stretched across the screen. The overflow check passes — a stretched mobile layout overflows nothing. Verify which composition rendered, and derive the breakpoint per the Responsive Contract instead. |
 | 8 | **Verified only at artboard widths** | Screenshots at exactly 390 and 1440 look perfect while every width between them is wrong. Those two widths are the only ones guaranteed to pass; capturing only them makes the defect invisible in the agent's own evidence. Always capture a non-artboard width in the same pass. |
+| 9 | **Inert page** | Every pixel matches and nothing works — cards do not open, inputs do not type, toggles do not toggle. Count the interactive elements the artboard implies and operate them; `0 links / 0 inputs` under a grid of cards is the signature. See "UI only does not mean inert" in [02_IMPLEMENTATION.md](02_IMPLEMENTATION.md). |
+| 10 | **Raising the breakpoint instead of fixing the class** | A stretched composition is found at one width, the breakpoint is moved, and the same stretch reappears in the band below the new threshold. The fix is the composition rule (grids reflow by available width, controls appear when they fit), not the number. Prove it with the composition table, which shows every band at once. |
+| 11 | **Mockup artefact transcribed as spec** | Two languages on one screen, a lorem string, a schematic count — properties of how the drawing was assembled, reproduced faithfully into the product. Read the artboard's own annotations, and resolve artefacts from the product instead of copying them. |
 
 ---
 
@@ -173,6 +202,8 @@ The task MUST be considered **FAILED** if any of the following occurs:
 * styling was manually recreated when direct export was available
 * computed styles were used as a substitute for structural export
 * an undefined state was invented
+* a node was transferred although it contradicts a recorded product decision
+* an existing test was inverted or weakened so the migration would pass
 * a backend state was designed without Paper approval
 * final visual verification was skipped
 * a second page was started while another page was still unapproved
