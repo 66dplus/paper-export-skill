@@ -1,6 +1,6 @@
 {
   "name": "paper-export-skill",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Global Claude Code skill: integrate a Paper design export into code without redesigning it. Export-first contract for coding agents.",
   "license": "MIT",
   "author": "DMITRII RYBKIN",
