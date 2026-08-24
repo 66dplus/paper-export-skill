@@ -12,6 +12,12 @@ Underneath all of it: **Paper is the source of truth for the UI.** The agent *pr
 that design, then wires real behavior around it — it does not redesign, "improve", simplify, or
 regenerate it.
 
+**Setup by agent:**
+
+- [**Claude Code** setup →](#claude-code-setup)
+- [**OpenCode** setup →](#opencode-setup)
+- [**Codex** setup →](#codex-setup)
+
 ## Why
 
 Coding agents are trained to write good code. Handed a design, they quietly rewrite it: merge wrappers,
@@ -100,7 +106,7 @@ Fourteen named **failure conditions** close a task as FAILED — including skipp
 using computed styles as a substitute for structural export, inventing an undefined state, and marking a
 phase `done` without meeting its requirements.
 
-## Install
+## Claude Code setup
 
 From GitHub, no clone needed:
 
@@ -182,6 +188,36 @@ curl -s https://models.dev/api.json | jq '.openrouter.models | to_entries[] |
 Manual wiring — copy [`opencode/opencode.jsonc.example`](opencode/opencode.jsonc.example) into your
 `opencode.jsonc` (project) or `~/.config/opencode/opencode.jsonc` (global) and replace
 `PROVIDER/YOUR_VISION_MODEL` with the model of your choice. Then **restart opencode**.
+
+## Codex setup
+
+[Codex](https://github.com/openai/codex) follows the same logic as Claude Code: it reads the same
+`SKILL.md`-based skill files and connects to Paper through the same local MCP endpoint.
+
+**Skill.** Codex loads skills from `.agents/skills` (project) and `~/.agents/skills` (user) — see
+[where Codex loads local skills](https://developers.openai.com/codex/build-skills). Point it at the
+bundled copy:
+
+```bash
+mkdir -p ~/.agents/skills
+cp -R paper-migration ~/.agents/skills/
+```
+
+Codex detects newly installed skills automatically; restart Codex if it does not show up.
+
+**Paper MCP.** Same endpoint as Claude Code, configured the Codex way — add to `~/.codex/config.toml`
+(or `.codex/config.toml` for a project):
+
+```toml
+[mcp_servers.paper]
+url = "http://127.0.0.1:29979/mcp"
+```
+
+Or use the desktop app: Settings → MCP servers → Add server → **Streamable HTTP** →
+`http://127.0.0.1:29979/mcp`, then Restart.
+
+**Vision.** The phase-3 screenshot gate is the only place the model matters: it must be run by a
+vision-capable model. Nothing here hardcodes one — pick your model in Codex's configuration as usual.
 
 ## Usage
 
