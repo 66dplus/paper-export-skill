@@ -50,6 +50,9 @@ Screenshots:
   Paper: <path>
   Real:  <path>
 
+Widths verified:
+  390 (mobile artboard) · 1280 (in-between) · 1440 (desktop artboard)
+
 Out of scope (no Paper design): error state
 
 Reply APPROVED or CHANGES_REQUESTED.
@@ -57,6 +60,12 @@ Reply APPROVED or CHANGES_REQUESTED.
 
 The localhost URL must actually be serving, and it must land on the exact state under review.
 Telling the user to review a page that is not running is not a review request.
+
+**State the widths, and include one that is not an artboard width.** The human opens the page in
+whatever window they already have — almost never an artboard width. Evidence captured only at
+artboard widths shows the two views guaranteed to look correct, so a broken in-between renders as
+a green report and the human finds it in the first five seconds. If the screenshots and the
+human's screen disagree, suspect the sampled width before anything else, and re-measure at theirs.
 
 ---
 
