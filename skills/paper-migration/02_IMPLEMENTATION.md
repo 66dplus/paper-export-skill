@@ -37,6 +37,48 @@ after it. That is what the reference artifacts are for.
 **Ship a page a human can operate.** A review of an inert page tells you nothing you did not
 already know from the export.
 
+## Wiring brings the data. Paper still owns the labels.
+
+Reusing the application's real data path is right — but the object you reuse often carries its
+own field names, its own formatting, its own extra badge, alongside the values you actually
+wanted. A currency symbol appearing on a card because the reused hotel-price component always
+renders one, a score breakdown showing `WATER` / `NATURE` because that is what the reused presenter
+calls its fields — neither was drawn in Paper, and both are now on the page because the data path
+was adopted wholesale instead of read from.
+
+```text
+from the real data source — values: the number, the name, the count, the coordinate
+from Paper                — labels, structure, which fields appear at all, formatting, presence
+```
+
+Wiring a reused component means mapping its values onto Paper's structure, not rendering the
+component and calling the result wired. Re-run the bidirectional check (Direction B especially)
+**after** wiring, against the live page with real data — not only after the static JSX pass. A
+static pass has no prices, no badges, no currency symbols to leak; they only appear once a real
+object is behind the card, which is exactly when Direction B needs to run again.
+
+## Content count is an unavoidable state too
+
+Viewport width was already established as unavoidable — something renders at every width whether
+or not Paper drew that width. The same is true of any count real data decides: how many photos a
+listing has, how many amenity chips it earns, how many list rows a section gets. Paper's artboard
+shows *one* sample count; production data will not respect it, and it will sometimes land on an
+edge Paper never pictured — three photos where the mock had five, one amenity where it had four.
+
+Derive a layout rule for the realistic range of counts, the same way a breakpoint is derived for
+the realistic range of widths — do not ship whatever a generic grid produces for the count the
+artboard happened to have and call the gap between it and reality "not our data's fault."
+
+## A migrated control may lead off the migrated page
+
+Some controls' correct destination is a route this wave did not touch — a quiz that hands off to
+an existing guide page, a "view all" that lands on an unmigrated list. The navigation is not wrong,
+but a reviewer who lands there mid-flow experiences an abrupt design discontinuity and reasonably
+reads it as broken, because from their side of the screen there is no difference between "correctly
+left migrated scope" and "actually broken." Say so directly in the review request — name the
+control and the fact that its destination is out of this migration's scope — instead of leaving the
+reviewer to discover it by clicking and guess which one it is.
+
 ---
 
 # JSX rules
