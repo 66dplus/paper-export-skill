@@ -1,0 +1,44 @@
+{
+  "name": "paper-export-skill",
+  "version": "1.0.0",
+  "description": "Global Claude Code skill: integrate a Paper design export into code without redesigning it. Export-first contract for coding agents.",
+  "license": "MIT",
+  "author": "DMITRII RYBKIN",
+  "type": "module",
+  "bin": {
+    "paper-export-skill": "bin/cli.js"
+  },
+  "files": [
+    "bin",
+    "skills",
+    "LICENSE",
+    "README.md"
+  ],
+  "keywords": [
+    "claude",
+    "claude-code",
+    "agent-skill",
+    "skill",
+    "paper",
+    "paper.design",
+    "design-to-code",
+    "mcp",
+    "react",
+    "tailwind"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/66dplus/paper-export-skill.git"
+  },
+  "bugs": {
+    "url": "https://github.com/66dplus/paper-export-skill/issues"
+  },
+  "homepage": "https://github.com/66dplus/paper-export-skill#readme",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "install:skill": "node bin/cli.js install",
+    "uninstall:skill": "node bin/cli.js uninstall"
+  }
+}
