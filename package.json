@@ -1,6 +1,6 @@
 {
   "name": "paper-export-skill",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Global Claude Code skill: a phase-gated, state-machine-driven workflow for migrating a Paper design into a React app — one page per human-review cycle, no redesign.",
   "license": "MIT",
   "author": "DMITRII RYBKIN",
@@ -11,12 +11,14 @@
   "files": [
     "bin",
     "skills",
+    "opencode",
     "LICENSE",
     "README.md"
   ],
   "keywords": [
     "claude",
     "claude-code",
+    "opencode",
     "agent-skill",
     "skill",
     "paper",

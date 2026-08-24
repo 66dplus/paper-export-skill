@@ -1,0 +1,33 @@
+{
+  // opencode config template for the paper-migration skill (spotbeaches / any Paper-driven project).
+  // Copy the blocks you need into your opencode.jsonc (project) or
+  // ~/.config/opencode/opencode.jsonc (global), then pick your vision model.
+  //
+  // PICKING THE VISION MODEL — no model is hardcoded here on purpose:
+  //   1. List vision-capable models on your providers, e.g. for openrouter:
+  //        curl -s https://models.dev/api.json | jq '.openrouter.models | to_entries[] |
+  //          select(.value.attachment == true or (.value.modalities.input // [] | index("image"))) |
+  //          .key'
+  //   2. Set <YOUR_VISION_MODEL> below to the provider/model id of your choice
+  //      (e.g. a cheap vision model from openrouter: openrouter/deepseek/deepseek-v4-flash-vision-exp).
+  // The paper-vision subagent is the ONLY place the model matters — everything else runs on your
+  // default model.
+
+  "$schema": "https://opencode.ai/config.json",
+
+  "mcp": {
+    "paper": {
+      "type": "remote",
+      "url": "http://127.0.0.1:29979/mcp",
+      "enabled": true
+    }
+  },
+
+  "agent": {
+    "paper-vision": {
+      "description": "Vision-capable subagent for visual comparison of screenshots. USE whenever screenshots must be compared: Paper design vs real app render (paper-migration phase 3), before/after screenshots, screenshot review, pixel-diff judgment. Give it both screenshots and the list of differences to check; it returns a verdict.",
+      "mode": "subagent",
+      "model": "PROVIDER/YOUR_VISION_MODEL"
+    }
+  }
+}

@@ -1,8 +1,8 @@
 # paper-export-skill
 
-A **global agent skill** for [Claude Code](https://claude.com/claude-code) (and any agent that reads
-`SKILL.md` files) that governs how a coding agent migrates a **[Paper](https://paper.design)** design into
-a real React / TypeScript application.
+A **global agent skill** for [Claude Code](https://claude.com/claude-code), [opencode](https://opencode.ai)
+and any agent that reads `SKILL.md` files — it governs how a coding agent migrates a
+**[Paper](https://paper.design)** design into a real React / TypeScript application.
 
 It is not a style guide. It is a **phase-gated, state-machine-driven pipeline** with an explicit
 definition of done, an explicit list of failure conditions, and a hard cap on how much work can happen
@@ -145,6 +145,43 @@ Add `--project` to any of them to act on `./.claude/skills` instead of `~/.claud
 git clone https://github.com/66dplus/paper-export-skill.git
 cp -R paper-export-skill/skills/paper-migration ~/.claude/skills/
 ```
+
+## OpenCode setup
+
+[opencode](https://opencode.ai) loads the skill automatically from `~/.claude/skills/` (no extra step),
+but the phase-3 screenshot gate needs two things wired in your opencode config: the **Paper MCP
+server** and a **vision-capable subagent** that performs the Paper ↔ app screenshot comparison.
+
+The skill never hardcodes a vision model for opencode — the model is chosen at setup time from your
+providers:
+
+```bash
+# one-liner: install the skill + wire Paper MCP + create the paper-vision subagent
+npx github:66dplus/paper-export-skill opencode
+
+# non-interactive: pick the model yourself (list candidates first, see below)
+npx github:66dplus/paper-export-skill opencode --model openrouter/<provider-id>/<vision-model>
+```
+
+The interactive menu lists vision-capable models from the live
+[models.dev](https://models.dev) registry, cheapest first; `Enter` takes the first. Flags:
+
+```bash
+paper-export-skill opencode --project    # write ./opencode.jsonc instead of the global config
+paper-export-skill opencode --dry-run    # print the resulting config, write nothing
+paper-export-skill opencode --force      # overwrite an existing paper-vision model
+```
+
+To list candidates yourself:
+
+```bash
+curl -s https://models.dev/api.json | jq '.openrouter.models | to_entries[] |
+  select(.value.attachment == true or (.value.modalities.input // [] | index("image"))) | .key'
+```
+
+Manual wiring — copy [`opencode/opencode.jsonc.example`](opencode/opencode.jsonc.example) into your
+`opencode.jsonc` (project) or `~/.config/opencode/opencode.jsonc` (global) and replace
+`PROVIDER/YOUR_VISION_MODEL` with the model of your choice. Then **restart opencode**.
 
 ## Usage
 
