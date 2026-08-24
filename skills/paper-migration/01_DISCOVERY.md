@@ -176,6 +176,56 @@ An undefined state is marked explicitly, and recorded in the state file under `o
 OUT OF SCOPE — NO PAPER DESIGN
 ```
 
+## Not every undefined state may be declared out of scope
+
+Separate undefined states into two kinds before using that label:
+
+```text
+avoidable    — the app can decline to enter it   (a drawer, an empty list, an error panel)
+unavoidable  — it renders whether or not Paper drew it
+               (every viewport width · every focus ring · every text length the data produces)
+```
+
+`OUT OF SCOPE — NO PAPER DESIGN` is legitimate **only for an avoidable state**. For an
+unavoidable one there is no "not designed" option — something will render, and declining to
+decide means shipping whatever falls out by accident.
+
+For an unavoidable state: derive it from the artboards you do have, record the derivation, and
+raise it with the derivation **already implemented**. Never use "Paper does not define it" as a
+reason to ship the undefined behaviour and hand the owner a question instead of a page.
+
+---
+
+# RESPONSIVE CONTRACT
+
+An artboard is a **composition sampled at one width**, not a layout that exists only at that
+width. A 1440 desktop artboard and a 390 mobile artboard define two compositions, and the browser
+renders one of them at **every** width in between. Those widths are an unavoidable state.
+
+Before implementing, write down which range each composition owns, and record it in the state file:
+
+```text
+mobile composition    390 → N-1
+desktop composition   N   → ∞
+```
+
+Then decide how the design scales inside each range:
+
+* **An artboard's pixel widths are proportions of that artboard's content box, not constants.**
+  `820px` inside a `1312px` content box is `62.5%`. Reproduce the proportion; the artboard width
+  is the anchor at which it must still equal the original number *exactly*.
+* **Compute the hard minimum before choosing the breakpoint.** Sum the widest fixed run in the
+  artboard (`padding + columns + gaps`). Transcribed literally, that sum is the narrowest width at
+  which the composition fits.
+* **Display type scales with the composition; small UI text does not** (labels, captions, body
+  ≤ 17px are one size in both artboards — leave them alone).
+
+**A breakpoint set to "where the fixed widths stop fitting" is a bug, not a measurement.** That
+number is an artefact of transcription, and it routinely lands above ordinary laptop widths —
+handing 1200–1380px viewports the phone composition stretched across the screen. If the computed
+minimum lands anywhere near common viewports, the literal transcription is the wrong reading:
+scale the proportions instead, and keep the artboard width as the exactness anchor.
+
 ---
 
 # Existing application UI is not automatically reusable

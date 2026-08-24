@@ -81,6 +81,15 @@ buttons · inputs · selects · tabs · badges · cards · dialogs · drawers ·
 ### Responsive behavior
 wrapping · width constraints · overflow · responsive visibility · breakpoint behavior
 
+**Check the composition, not just the overflow.** At every sampled width, ask which artboard
+composition owns that width (see the Responsive Contract in [01_DISCOVERY.md](01_DISCOVERY.md))
+and confirm that is what actually rendered. "No horizontal overflow" is not a responsive result:
+a phone layout stretched across a 1280px window overflows nothing and is still wrong.
+
+Sample at minimum: **each artboard width**, plus **at least one width that is neither** — a real
+laptop viewport such as 1280. The in-between widths are where responsive defects live; the
+artboard widths are the two places guaranteed to look right.
+
 ### Runtime
 no console errors · no runtime errors · build passes · TypeScript passes · the original route still works ·
 no unrelated UI changed
@@ -99,6 +108,8 @@ no unrelated UI changed
 ✓ App → Paper comparison passed
 ✓ structural checks passed
 ✓ layout / typography / appearance checks passed
+✓ each artboard composition verified at its own artboard width
+✓ at least one non-artboard width verified, and it rendered the composition that owns it
 ✓ responsive checks passed
 ✓ runtime checks passed
 ✓ portal-rendered surfaces validated in the browser (if any)
@@ -122,6 +133,8 @@ expensive to miss. **Append new cases here as they are found.**
 | 4 | **Rebuilt from computed styles** | Widths copied as numbers while `flexShrink`, `flexBasis` and wrappers were dropped. Looks identical at one viewport only. |
 | 5 | **Portal loses CSS variables** | A Radix dialog/drawer/popover rendered outside the styled subtree; tokens resolve to fallbacks. Only visible in the browser, never in the JSX. |
 | 6 | **Invented empty/loading state** | The backend produced a state Paper does not define and the agent designed one. See [05_FINALIZATION.md](05_FINALIZATION.md). |
+| 7 | **Mobile composition on a desktop viewport** | The desktop breakpoint was set to where the artboard's fixed widths stop fitting, so an ordinary laptop width (1200–1380) falls into the mobile branch and renders the phone layout stretched across the screen. The overflow check passes — a stretched mobile layout overflows nothing. Verify which composition rendered, and derive the breakpoint per the Responsive Contract instead. |
+| 8 | **Verified only at artboard widths** | Screenshots at exactly 390 and 1440 look perfect while every width between them is wrong. Those two widths are the only ones guaranteed to pass; capturing only them makes the defect invisible in the agent's own evidence. Always capture a non-artboard width in the same pass. |
 
 ---
 
