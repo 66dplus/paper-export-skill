@@ -1,15 +1,15 @@
 # paper-export-skill
 
 A **global agent skill** for [Claude Code](https://claude.com/claude-code) (and any agent that reads
-`SKILL.md` files) that governs how a coding agent turns a **[Paper](https://paper.design)** design into a
-real React / TypeScript application.
+`SKILL.md` files) that governs how a coding agent migrates a **[Paper](https://paper.design)** design into
+a real React / TypeScript application.
 
-It is not a style guide. It is a **deterministic, phase-gated workflow** with an explicit definition of
-done, an explicit list of failure conditions, and a hard cap on how much work can happen before a human
-looks at it: **one page**.
+It is not a style guide. It is a **phase-gated, state-machine-driven pipeline** with an explicit
+definition of done, an explicit list of failure conditions, and a hard cap on how much work can happen
+before a human looks at it: **one page**.
 
-One rule underneath all of it: **Paper is the source of truth for the UI.** The agent proves the app
-renders that design, then wires real behavior around it — it does not redesign, "improve", simplify, or
+Underneath all of it: **Paper is the source of truth for the UI.** The agent *proves* the app renders
+that design, then wires real behavior around it — it does not redesign, "improve", simplify, or
 regenerate it.
 
 ## Why
@@ -17,58 +17,88 @@ regenerate it.
 Coding agents are trained to write good code. Handed a design, they quietly rewrite it: merge wrappers,
 rename classes, "clean up" the JSX, rebuild a layout from a handful of computed numbers, swap a custom
 control for a native `<select>`, and add the empty state nobody asked for. Then they declare success
-because TypeScript compiled.
+because TypeScript compiled — and they do it to twelve screens before anyone looks.
 
-This skill closes both holes — the rewriting **and** the self-certification:
+This skill closes all three holes — the rewriting, the self-certification, and the unreviewed batch:
 
 > Build success alone is NEVER sufficient.
+> Maximum unreviewed scope: one page.
 
-## One page = one review cycle
+## Structure
 
-The single most important constraint: the agent processes **one page at a time** and may not start the
-next one until the current one is explicitly approved by a human.
+The skill is a short entry point plus one file per phase, loaded on demand — not an 20 KB monolith the
+agent has to hold in context all at once.
 
 ```
-extract from Paper → implement → automated Eval → serve on localhost
-→ request human review → apply requested changes → re-run Eval
-→ re-review if changed → APPROVED → lock → next page
+paper-migration/
+├── SKILL.md               top-level rules + the workflow map (~5 KB)
+├── 00_STATE.md            the JSON state machine: shape, legal transitions, gates
+├── 01_DISCOVERY.md        phase 0–1: project inspection, MCP-first Paper extraction
+├── 02_IMPLEMENTATION.md   phase 2: JSX/styling/structural-fidelity rules, no UI invention
+├── 03_EVAL.md             phase 3: real-browser screenshot gate, bidirectional check, regression cases
+├── 04_HUMAN_REVIEW.md     phase 4: READY_FOR_REVIEW → APPROVED / CHANGES_REQUESTED
+└── 05_FINALIZATION.md     phase 5: UI lock, backend, animation, regression, final report
 ```
-
-Maximum unreviewed scope is one page. No batch of screens lands at once, and no page is "done" because
-the agent thinks so.
 
 ## The workflow
 
 ```
-PHASE 0 — PROJECT INSPECTION      inspect framework, styling system, data layer; change nothing
-PHASE 1 — PAPER EXTRACTION        MCP-first: JSX, screenshot, tree, computed styles, state
-PHASE 2 — UI IMPLEMENTATION       UI only; no backend, no refactor, no redesign
-PHASE 3 — VISUAL VALIDATION       real route, real browser, real screenshot vs Paper
-PHASE 4 — UI LOCK                 layout/structure/styles frozen
-PHASE 5 — BACKEND INTEGRATION     same UI + real data
-PHASE 6 — INTERACTION / ANIMATION separate pass, never touches static UI
-PHASE 7 — FINAL EVAL              six gates, all must pass
+PHASE 0  DISCOVERY         inspect the project — change nothing
+PHASE 1  PAPER EXTRACTION  MCP-first: JSX, screenshot, tree, styles, state
+PHASE 2  IMPLEMENTATION    UI only — no backend, no refactor, no redesign
+PHASE 3  AUTOMATED EVAL    real route, real browser, bidirectional comparison
+PHASE 4  HUMAN REVIEW      localhost → APPROVED / CHANGES_REQUESTED
+PHASE 5  FINALIZATION      UI lock → backend → animation → regression → report
 ```
 
-A phase is not complete until its gate passes.
+Phases advance strictly in order. `CHANGES_REQUESTED` sends the page **back** to phase 2 → 3 → 4, never
+forward.
+
+## The state file
+
+Progress lives in `.paper-migration-state.json` at the root of the app being migrated — per page, per
+phase, with artifacts and human feedback recorded:
+
+```json
+{
+  "page": "beaches",
+  "status": "ready_for_review",
+  "current_phase": 3,
+  "phases": {
+    "1_extraction":   { "status": "done", "artifacts": { "jsx": true, "screenshot": true, "tree": true } },
+    "3_eval":         { "status": "done", "result": "pass" },
+    "4_human_review": { "status": "pending", "result": null, "feedback": [] }
+  }
+}
+```
+
+> The JSON state file is the authoritative workflow state. Never advance a page or phase without
+> updating the state file first. Never mark a phase as `done` unless all phase requirements are
+> satisfied.
+
+Two consequences that make it more than a log:
+
+- **Phase 4 cannot be self-approved.** Silence is not approval, a passing eval is not approval. Only an
+  explicit human `APPROVED` moves the page.
+- **A new session resumes from the file**, not from a fresh re-analysis of the whole project.
 
 ## What it enforces
 
-- **One page, one approval** — the full extract → implement → eval → localhost → human review → lock cycle runs per page. The next page does not start until the current one is APPROVED.
+- **One page, one approval** — the full extract → implement → eval → localhost → human review → lock cycle runs per page. At most one page may be unapproved at a time; starting a second is a named failure condition.
 - **MCP first** — anything Paper can export is retrieved from Paper, never inferred, approximated or hand-rebuilt. Generated implementation is the last resort.
 - **Computed styles are diagnostics, not a source** — `width: 280px` is not the same fact as `width: 280px` + `flexShrink: 0` + the spacer node next to it. Preserve the layout *mechanism*, not the visible numbers.
 - **Existing app UI is not automatically reusable** — code does not win over Paper just because it already exists.
-- **Migration unit = one artboard + one route + one explicit state** — no "migrate the whole app" as a single uncontrolled task. Every route gets a state inventory; a state Paper does not define is marked `OUT OF SCOPE — NO PAPER DESIGN`, not invented.
-- **Real browser gate** — open the real route, reach the real state, screenshot it, compare against the Paper screenshot, fix, repeat. Mock HTML stands and code inspection do not count.
-- **Bidirectional check** — Paper → App (is every designed element there?) *and* App → Paper (is every rendered element designed?). Failing either direction is a mismatch.
-- **UI LOCK** — once visual validation passes, backend integration happens *around* the frozen UI.
-- **Backend-created states stop the work** — loading / error / empty with no Paper design triggers an explicit STOP report requesting a design, never an improvised one.
-- **Portals are validated in the browser** — Radix dialogs, drawers and popovers can lose CSS variable scope; assumption is not allowed here.
-- **Evidence, not adjectives** — every PASS carries an artifact (screenshot, MCP result, route, state reached). "Looks correct" is not a report.
-- **Honest tool log** — every Paper MCP call is logged as it happens, and the final report may not claim a tool that was not used.
+- **Migration unit = one artboard + one route + one explicit state** — every route gets a state inventory; a state Paper does not define is marked `OUT OF SCOPE — NO PAPER DESIGN`, not invented.
+- **Real browser gate** — open the real route, reach the real state, screenshot it, compare against Paper, fix, repeat. Mock HTML stands and code inspection do not count.
+- **Bidirectional check** — Paper → App *and* App → Paper. The second direction is the one that catches invented UI.
+- **Named regression cases** — missing spacer nodes, native `<select>` substitution, extra buttons, layouts rebuilt from computed numbers, portals losing CSS variables. The list is meant to grow.
+- **UI LOCK** — after approval, backend integration happens *around* the frozen UI.
+- **Backend-created states stop the work** — loading / error / empty with no Paper design triggers an explicit STOP requesting a design, never an improvised one.
+- **Evidence, not adjectives** — every PASS carries an artifact. "Looks correct" is not a report, and the tool log may not claim a tool that was not used.
 
-Twelve named **failure conditions** close the task as FAILED — including skipping the visual comparison,
-using computed styles as a substitute for structural export, and inventing an undefined state.
+Fourteen named **failure conditions** close a task as FAILED — including skipping the visual comparison,
+using computed styles as a substitute for structural export, inventing an undefined state, and marking a
+phase `done` without meeting its requirements.
 
 ## Install
 
@@ -85,26 +115,19 @@ npm install -g github:66dplus/paper-export-skill
 paper-export-skill install
 ```
 
-Both write the skill to `~/.claude/skills/paper-export/`. **Restart Claude Code** (or open a new session)
-to load it.
+Both write the skill to `~/.claude/skills/paper-migration/`. **Restart Claude Code** (or open a new
+session) to load it.
 
-### Updating
-
-Re-run the same command — the installer reports the version change and overwrites:
-
-```bash
-npx github:66dplus/paper-export-skill      # ↻ paper-export: v1.0.0 → v2.0.0
-```
+> Upgrading from v1/v2: the skill was renamed `paper-export` → `paper-migration` when it was split into
+> phase files. The installer removes the old directory automatically, so no stale copy competes with it.
 
 ### Per-project install
-
-To vendor the skill into one repository instead of your home directory:
 
 ```bash
 npx github:66dplus/paper-export-skill install --project
 ```
 
-→ `./.claude/skills/paper-export/` (commit it if you want the whole team on the same contract).
+→ `./.claude/skills/paper-migration/` (commit it to put the whole team on the same contract).
 
 ### Other commands
 
@@ -118,11 +141,9 @@ Add `--project` to any of them to act on `./.claude/skills` instead of `~/.claud
 
 ### Manual install
 
-The skill is a single self-contained file — copying it works just as well:
-
 ```bash
 git clone https://github.com/66dplus/paper-export-skill.git
-cp -R paper-export-skill/skills/paper-export ~/.claude/skills/
+cp -R paper-export-skill/skills/paper-migration ~/.claude/skills/
 ```
 
 ## Usage
@@ -131,19 +152,12 @@ Once installed the skill triggers on its own for design-to-code work — a Paper
 selection being implemented, or the Paper MCP tools being in play. You can also invoke it explicitly:
 
 ```
-/paper-export
+/paper-migration
 ```
 
 It expects the **Paper MCP server** (`get_selection`, `get_tree_summary`, `get_jsx`, `get_screenshot`,
 `get_computed_styles`, `get_node_info`) and a way to open the real app in a real browser — the visual
 gate is not optional.
-
-## Layout
-
-```
-skills/paper-export/SKILL.md   the contract itself (the whole skill)
-bin/cli.js                     zero-dependency installer
-```
 
 ## License
 

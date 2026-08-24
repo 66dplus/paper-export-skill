@@ -1,7 +1,7 @@
 {
   "name": "paper-export-skill",
-  "version": "2.0.0",
-  "description": "Global Claude Code skill: integrate a Paper design export into code without redesigning it. Export-first contract for coding agents.",
+  "version": "3.0.0",
+  "description": "Global Claude Code skill: a phase-gated, state-machine-driven workflow for migrating a Paper design into a React app — one page per human-review cycle, no redesign.",
   "license": "MIT",
   "author": "DMITRII RYBKIN",
   "type": "module",

@@ -19,6 +19,9 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = path.resolve(HERE, '..');
 const SOURCE_SKILLS = path.join(PACKAGE_ROOT, 'skills');
 
+/** Skill directories shipped under an older name — removed on install so no stale copy competes. */
+const LEGACY_SKILLS = ['paper-export'];
+
 const args = process.argv.slice(2);
 const command = args.find((a) => !a.startsWith('-')) ?? 'install';
 const isProject = args.includes('--project') || args.includes('-p');
@@ -46,9 +49,21 @@ async function skillVersion(dir) {
   }
 }
 
+async function removeLegacy(dest) {
+  const shipped = await listSkills();
+  for (const name of LEGACY_SKILLS) {
+    if (shipped.includes(name)) continue;
+    const stale = path.join(dest, name);
+    if (!existsSync(stale)) continue;
+    await rm(stale, { recursive: true, force: true });
+    console.log(`✗ removed superseded skill: ${stale}`);
+  }
+}
+
 async function install() {
   const dest = targetRoot();
   await mkdir(dest, { recursive: true });
+  await removeLegacy(dest);
   const skills = await listSkills();
 
   for (const name of skills) {
@@ -74,11 +89,12 @@ async function install() {
   console.log('');
   console.log(`Installed into ${dest}`);
   console.log('Restart Claude Code (or start a new session) to load the skill.');
-  console.log('Then invoke it with /paper-export, or let it trigger on Paper design-to-code work.');
+  console.log(`Then invoke it with ${skills.map((n) => `/${n}`).join(' or ')}, or let it trigger on Paper design-to-code work.`);
 }
 
 async function uninstall() {
   const dest = targetRoot();
+  await removeLegacy(dest);
   const skills = await listSkills();
   for (const name of skills) {
     const to = path.join(dest, name);

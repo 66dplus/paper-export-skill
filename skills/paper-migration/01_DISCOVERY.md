@@ -1,0 +1,208 @@
+# 01 — Discovery & Paper Extraction (Phases 0–1)
+
+Covers **PHASE 0 — project inspection** and **PHASE 1 — Paper extraction**.
+Nothing is implemented here. No file is modified in phase 0.
+
+---
+
+# PHASE 0 — PROJECT INSPECTION
+
+Before changing any code, inspect the application and record:
+
+* framework
+* React version
+* TypeScript usage
+* routing system
+* styling system
+* CSS architecture
+* Tailwind usage
+* existing design tokens
+* component library
+* data-fetching layer
+* state-management layer
+* authentication
+* the relevant route
+* the relevant existing components
+
+**Do not modify code during this phase.**
+
+## Styling system detection
+
+Determine what styling system the project *actually* uses — Tailwind, CSS Modules, global CSS, a
+component library's styling, styled-components, or something project-specific.
+
+Do not assume the styling system from filenames alone. Inspect real usage.
+
+## Paper styling format
+
+Use the styling representation that is appropriate for the project **and** available from Paper.
+
+```text
+React + Tailwind project
+→ use Paper JSX with the Tailwind representation
+```
+
+```text
+React + CSS project
+→ use the closest direct Paper export available
+→ do not manually reconstruct the entire stylesheet from computed values
+```
+
+Never blindly convert between styling systems.
+Never regenerate an existing Paper representation because another format looks cleaner.
+
+---
+
+# PHASE 1 — PAPER EXTRACTION
+
+The design MUST be extracted before it is implemented.
+
+For each target artboard / frame:
+
+1. Identify the exact Paper node.
+2. Read the relevant Paper structure.
+3. Obtain the Paper **screenshot**.
+4. Obtain the Paper **JSX export**.
+5. Inspect the tree / hierarchy when necessary.
+6. Inspect computed styles only where needed for verification or ambiguity.
+7. Identify the visual states the artboard represents.
+
+## MCP-first policy
+
+If information is available through Paper MCP, retrieve it through Paper MCP.
+
+* Never **infer** information that can be obtained directly.
+* Never **approximate** information that can be obtained directly.
+* Never **manually recreate** information that can be exported directly.
+
+Preference order:
+
+```text
+1. Paper-exported JSX
+2. Paper-exported styling
+3. Paper node / tree information
+4. Paper computed styles
+5. Agent-generated implementation   ← last resort only
+```
+
+## Computed styles are not the primary source
+
+`get_computed_styles` is a **verification and diagnostic** tool. It is not a replacement for the Paper
+JSX structure.
+
+Do not take individual numbers from computed styles and rebuild the interface by hand. A value without
+its structural context is insufficient:
+
+```text
+width: 280px
+```
+
+is not equivalent to preserving
+
+```text
+width: 280px
+flexShrink: 0
+```
+
+plus the surrounding layout and spacer nodes.
+
+## Artifacts
+
+For every migration unit, keep:
+
+```text
+Paper screenshot
+Paper JSX
+Paper hierarchy / tree information
+relevant style information
+the identified visual state
+```
+
+These are the reference artifacts for the Eval in [03_EVAL.md](03_EVAL.md). Record their presence in
+`.paper-migration-state.json` under `phases.1_paper_extraction.artifacts`.
+
+---
+
+# MIGRATION UNIT
+
+Never migrate a large application as one uncontrolled task.
+
+A migration unit is:
+
+```text
+one artboard  +  one route  +  one explicit UI state
+```
+
+Examples:
+
+```text
+Login    — default
+Beaches  — populated
+Ratings  — populated
+Hotels   — selected
+Hotels   — drawer open
+```
+
+**Do not assume one artboard represents every state of the application.**
+
+---
+
+# STATE INVENTORY
+
+Before implementing, build a state inventory for the route:
+
+```text
+Hotels
+
+1. initial
+2. loading
+3. empty
+4. populated
+5. selected
+6. drawer open
+7. error
+```
+
+For every state:
+
+```text
+Paper design exists          → migrate it
+Paper design does not exist  → do not invent it
+```
+
+An undefined state is marked explicitly, and recorded in the state file under `out_of_scope_states`:
+
+```text
+OUT OF SCOPE — NO PAPER DESIGN
+```
+
+---
+
+# Existing application UI is not automatically reusable
+
+Existing DOM structure may differ from Paper. Existing CSS may conflict with Paper. Existing components
+may contain elements that do not exist in Paper.
+
+Do not preserve an existing implementation merely because it already exists. If the Paper structure
+differs, **replace the relevant UI subtree with the Paper structure.**
+
+Reuse an existing component only when its rendered structure and behavior are compatible with Paper.
+
+---
+
+## Gate — phases 0 and 1
+
+```text
+✓ project inspected; framework, styling system, routing and data layer recorded
+✓ nothing modified during phase 0
+✓ target artboard identified
+✓ Paper JSX obtained
+✓ Paper screenshot obtained
+✓ hierarchy inspected
+✓ styling information obtained
+✓ UI state identified
+✓ state inventory written; undefined states marked OUT OF SCOPE
+✓ state file updated
+```
+
+→ continue with [02_IMPLEMENTATION.md](02_IMPLEMENTATION.md).
