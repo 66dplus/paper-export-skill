@@ -68,15 +68,6 @@ The Paper JSX export is the primary structural reference.
 * replace elements
 * merge components merely for cleanliness
 * split components merely for abstraction
-* transfer a node that contradicts a recorded product decision
-* rewrite, invert or weaken an existing test so the migration passes
-
-The last two are not styling choices. A test that states a decision ("owner 2026-08-21: … must not
-be duplicated") outranks the artboard: leave the node out, leave the test alone, record it under
-`design_conflicts` in the state file and report it. See **Conflict resolution** in [SKILL.md](SKILL.md).
-
----
-
 # Styling rules
 
 Preserve the visual result of the Paper export.
@@ -175,7 +166,9 @@ Technical changes here are allowed only when necessary to preserve the exact Pap
 ✓ no unexplained extra UI
 ✓ no unexplained missing UI
 ✓ styling system preserved
-✓ no backend work performed in this phase
+✓ no NEW business logic, endpoints, schema or auth work in this phase
+✓ the page is operable — affordances the artboard draws actually work
+✓ wiring data did not move the UI (compared against the pre-wiring reference)
 ✓ state file updated
 ```
 
