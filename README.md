@@ -18,6 +18,22 @@ regenerate it.
 - [**OpenCode** setup →](#opencode-setup)
 - [**Codex** setup →](#codex-setup)
 
+## Two skills
+
+| Skill | Use it when |
+|---|---|
+| **paper-migration** | the screen already exists and is being redesigned |
+| **paper-new-screen** | the screen does not exist yet and is being built from an artboard |
+
+They share one contract. `paper-new-screen` owns only what a redesign never has to answer — where the
+screen lives, which half of the artboard is the app shell the layout already renders, how a user reaches
+a page Paper does not draw an entry point for, and whether the backend has the data — then delegates
+phases 2–5 to the `paper-migration` files with an explicit list of overrides.
+
+Nothing is duplicated between them, so a fix to the shared eval or review contract lands in both at once.
+A `depends-on` block declares every section `paper-new-screen` relies on, and `npm run check` fails if
+one of them is renamed or removed.
+
 ## Why
 
 Coding agents are trained to write good code. Handed a design, they quietly rewrite it: merge wrappers,
@@ -59,6 +75,27 @@ PHASE 5  FINALIZATION      UI lock → backend → animation → regression → 
 
 Phases advance strictly in order. `CHANGES_REQUESTED` sends the page **back** to phase 2 → 3 → 4, never
 forward.
+
+## What `paper-new-screen` adds
+
+Three failure modes that only exist when the screen is new:
+
+- **Double shell** — the artboard draws the header, sidebar and footer because a designer has to draw the
+  whole frame. The layout already renders them. Implemented as one block, the page ships two headers —
+  and it looks correct in an isolated component preview, which is why it survives to review. The skill
+  requires classifying every top-level artboard node `SHELL` / `SCREEN` before phase 2, and verifying the
+  route in place rather than in isolation.
+- **The entry point paradox** — a new screen needs a nav item or a link to be reachable, and that UI lives
+  on some *other* screen's artboard, which this wave may not touch. The shared rule forbids inventing
+  navigation. The skill resolves it with one scoped exception: the minimum UI required to *reach* the
+  screen, built in the host's style and not Paper's, recorded in the state file, and declared to the
+  reviewer as an addition. `direct_url` and `none_yet` are legitimate answers; silence is not.
+- **Design-system fork** — a screen with no predecessor invites its own button, its own spacing, its own
+  tokens. The skill inverts the reuse rule: reuse a primitive when it renders identically to Paper, never
+  bend the screen to a primitive, and never ship a parallel design system.
+
+Plus: placement (route, shell, auth) and data availability are resolved at phase 0 — a missing endpoint
+found after UI LOCK costs the lock.
 
 ## The state file
 
@@ -121,7 +158,7 @@ npm install -g github:66dplus/paper-export-skill
 paper-export-skill install
 ```
 
-Both write the skill to `~/.claude/skills/paper-migration/`. **Restart Claude Code** (or open a new
+Both write the skills to `~/.claude/skills/paper-migration/` and `~/.claude/skills/paper-new-screen/`. **Restart Claude Code** (or open a new
 session) to load it.
 
 > Upgrading from v1/v2: the skill was renamed `paper-export` → `paper-migration` when it was split into
@@ -133,7 +170,7 @@ session) to load it.
 npx github:66dplus/paper-export-skill install --project
 ```
 
-→ `./.claude/skills/paper-migration/` (commit it to put the whole team on the same contract).
+→ `./.claude/skills/` (commit them to put the whole team on the same contract).
 
 ### Other commands
 
@@ -149,7 +186,7 @@ Add `--project` to any of them to act on `./.claude/skills` instead of `~/.claud
 
 ```bash
 git clone https://github.com/66dplus/paper-export-skill.git
-cp -R paper-export-skill/skills/paper-migration ~/.claude/skills/
+cp -R paper-export-skill/skills/paper-migration paper-export-skill/skills/paper-new-screen ~/.claude/skills/
 ```
 
 ## OpenCode setup
@@ -225,7 +262,8 @@ Once installed the skill triggers on its own for design-to-code work — a Paper
 selection being implemented, or the Paper MCP tools being in play. You can also invoke it explicitly:
 
 ```
-/paper-migration
+/paper-migration     an existing screen, redesigned
+/paper-new-screen     a screen that does not exist yet
 ```
 
 It expects the **Paper MCP server** (`get_selection`, `get_tree_summary`, `get_jsx`, `get_screenshot`,
