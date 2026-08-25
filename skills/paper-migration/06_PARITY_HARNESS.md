@@ -17,8 +17,9 @@ token is noise twice over.
 
 ```text
 PASS 0  TOKENS      every utility class the export uses resolves to the same number on both sides
+                    — AND every class the implementation writes resolves at all (see below)
 PASS 1  STRUCTURE   every Paper node exists, once, in the right order
-PASS 2  GEOMETRY    every matched node's box and its container's spacing
+PASS 2  GEOMETRY    every matched node's box, its container's spacing, and the space BETWEEN sections
 PASS 3  APPEARANCE  type, colour, border, radius, shadow on matched nodes
 ```
 
@@ -106,6 +107,22 @@ bleed:     a full-bleed node's width vs the viewport width
 Both directions matter. The 2026-08-25 page had a hero that did **not** reach the viewport edges
 (white gutters) — an under-bleed, which no `scrollWidth > viewport` check can ever see.
 
+### The space between sections
+
+Sections are compared against their own origins, so the gap **between** two of them belongs to
+neither box and no per-section check can see it. Measure it as its own dimension:
+
+```text
+last painted node of section N  →  first painted node of section N+1
+adjacent artboard sections only (a deliberately unimplemented section is not a spacing defect)
+a background equal to the page's own ground paints nothing — the export paints the ground once
+at the root, the implementation paints it again on every section wrapper
+```
+
+On 2026-08-25 this was the one defect the owner found that the report was structurally unable to
+contain. Added the same day, it immediately surfaced three more — including a regression introduced
+an hour earlier by the fix for the first one.
+
 ### The check that catches the whole class in one line
 
 ```text
@@ -172,11 +189,21 @@ Ship the harness with the migration, in the app's own repo (it needs the app's P
 
 ```text
 tools/paper-parity/
-  inventory.mjs   Paper node tree → JSON (via MCP output pasted or fetched by the agent)
-  extract.mjs     live page → node records (box + computed styles), keyed by a data-attribute
-  diff.mjs        passes 1-3, prints findings, exits non-zero on any DEFECT
-  README.md       how to run, what each pass proves, what it cannot prove
+  audit-classes.mjs  PASS 0, static: UNDEFINED + SHADOWED utility classes (runs first, costs a second)
+  extract.mjs        one side → node records (box + computed styles + paint), same code both sides
+  diff.mjs           passes 1-3, prints findings, exits non-zero on any DEFECT
+  reference/*.html   the artboard export, validated against the design file's own y-offsets
+  sections*.json     artboard section ↔ live section map, with written reasons for deviations
+  run.sh / run-mobile.sh
+  README.md          how to run, what each pass proves, what it cannot prove
 ```
+
+**PASS 0 is static and belongs first.** A class that resolves to nothing — or to something other
+than the design's value — compiles, lints and clears every other gate. Two shapes, both real:
+`UNDEFINED` (a class named after a design token that no rule defines) and `SHADOWED` (a `md:` variant
+outranked by a same-family base class the scope overrides). Regression-check the audit against the
+stylesheet as it stood before the fixes: if it cannot reproduce the defects it was written for, it
+is not evidence.
 
 **Mapping mechanism:** tag implemented nodes with the Paper node id
 (`data-paper-node="DFV-0"`) as they are built. This is what makes pass 1 machine-checkable and pass 3

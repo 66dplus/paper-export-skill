@@ -79,7 +79,37 @@ Every one of these is a class, not an instance — which is why the count fell s
 | a JSX comment without braces rendering as visible text | looks like a comment in the source | `extra` text nodes containing `/*` |
 
 Note the shape they share: **a class that resolves to nothing, or to something else, still compiles
-and still lints.** Only a rendered measurement sees it.
+and still lints.** Only a rendered measurement sees it — or a static audit written for exactly this
+family, which is cheaper and runs first:
+
+```text
+UNDEFINED  a class named after a design token that no scope rule defines
+           → it silently resolves to the framework default
+SHADOWED   a `md:X` outranked by a same-family base class the scope overrides
+           → `.paper-scope .px-5` is more specific than `.md\:px-7`
+```
+
+Ship it with the harness and run it before the diff (`audit-classes.mjs` in the reference
+implementation). Regression-check it against the stylesheet as it stood **before** the fixes: on
+this page it reports 13 findings, including the two the owner reported by eye. An audit that cannot
+reproduce the defects it was written for is not evidence of anything.
+
+**Rule for responsive pairs:** never mix a scope-overridden token class with a variant of the same
+property. Either define `.paper-scope .md\:<class>` as well, or make both sides arbitrary values
+(`gap-[40px] md:gap-[48px]`), which no scope rule can outrank.
+
+### The gap between sections belongs to neither section
+
+Each section is compared against its own origin, so a missing space **between** two of them is
+invisible to every per-section check. That is precisely the one defect on 2026-08-25 that a full
+pass over the report would still have missed: the owner saw two blocks touching, and the report had
+not one word about it.
+
+Measure it explicitly — last painted node of one section to first painted node of the next, adjacent
+artboard sections only — and treat a background equal to the page's own ground as painting nothing,
+because the export paints the ground once at the root while the app paints it again per section.
+Added on the day, it immediately found three more real defects, one of which was a regression the
+same session had just introduced.
 
 ---
 
