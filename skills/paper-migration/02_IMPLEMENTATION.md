@@ -164,6 +164,52 @@ drawers · empty states · status indicators · additional actions · additional
 
 If something is absent from Paper, it must not appear in the migrated state.
 
+## …and no UI deletion either
+
+Invention has an inverse, and it is the same act: **dropping a node Paper draws is a unilateral edit
+to the owner's design.** It does not feel like one, because the justification is usually honest —
+"the feed carries no rank", "we have no photo for this", "that value would be fabricated".
+
+Run it through this order:
+
+```text
+1. Can the value be DERIVED from data the product already has?
+      → derive it. (A neighbour's rank comes from the same ranking the page already links to.)
+2. Is the node's own empty state defined by the product's rules?
+      → render the node in that state (a three-state project shows "unknown", it does not delete the row)
+3. Neither?
+      → it is a design_conflict: leave the node out, RECORD it, and raise it
+```
+
+What is never acceptable is silent removal. The owner meets it as *«ты потерял блок»* — and they are
+right: from their side of the screen, a deliberate omission and a bug are the same thing.
+
+## A "missing because data" claim carries its probe
+
+Whenever the reason an element does not render is the data, attach the measurement:
+
+```text
+endpoint · field · observed value · when
+GET /api/v1/beaches/{slug} → authors.editor = null (2026-08-25)
+```
+
+Without it the sentence is unfalsifiable, and unfalsifiable sentences absorb real defects: half the
+"data gaps" in the 2026-08-25 migration were code paths that never rendered. A claim about data is a
+measurement or it is nothing.
+
+## Tag every transferred node with its Paper id
+
+As each node is written, carry its Paper node id into the markup:
+
+```jsx
+<div data-paper-node="DFV-0" className="…">
+```
+
+This is what makes Direction A a set difference instead of a memory exercise, and it keeps the parity
+harness's matching keyed by identity rather than by text (which cross-matches whenever a string
+appears twice). Add it while writing the node — a later sweep re-derives the mapping from the same
+attention that missed it the first time.
+
 ---
 
 # Allowed technical differences

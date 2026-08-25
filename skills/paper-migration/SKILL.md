@@ -42,9 +42,16 @@ Generated implementation is the last resort.
 Never invent UI, states, copy, controls or styling that Paper does not define.
 When uncertain: inspect Paper, measure, compare — then act. If it cannot be resolved, STOP and report.
 
-**5. Build success is never sufficient.**
-A migration is validated by a real screenshot of the real route in a real browser, compared against the
-Paper screenshot in **both directions**. TypeScript compiling proves nothing about the UI.
+**5. Build success is never sufficient — and neither is a green check from a blind instrument.**
+A migration is validated by comparing the real route, in a real browser, against the Paper design in
+**both directions** — structure, then **geometry as numbers**, then appearance
+([06_PARITY_HARNESS.md](06_PARITY_HARNESS.md)). TypeScript compiling proves nothing about the UI.
+Neither does a parity report that only compared text: it converts *unchecked* into *verified*, which
+is worse than having no report at all.
+
+**Before writing `pass`: name the failure modes, then name the instrument that would have caught each
+one.** Any failure mode without an instrument is an unverified claim — say so, or build the
+instrument.
 
 **6. The state file is authoritative.**
 `.paper-migration-state.json` records progress. Never advance a page or a phase without updating it
@@ -72,7 +79,7 @@ the page back to phase 2, then 3, then 4 again — never forward.
 | state contract (read first) | [00_STATE.md](00_STATE.md) |
 | 0 · 1 | [01_DISCOVERY.md](01_DISCOVERY.md) |
 | 2 | [02_IMPLEMENTATION.md](02_IMPLEMENTATION.md) |
-| 3 | [03_EVAL.md](03_EVAL.md) |
+| 3 | [03_EVAL.md](03_EVAL.md) + the instrument it runs on: [06_PARITY_HARNESS.md](06_PARITY_HARNESS.md) |
 | 4 | [04_HUMAN_REVIEW.md](04_HUMAN_REVIEW.md) |
 | 5 | [05_FINALIZATION.md](05_FINALIZATION.md) |
 
@@ -92,6 +99,8 @@ routing, state, APIs, authentication and backend logic.
 
 ```text
 Paper vs agent assumptions           → Paper wins.
+Paper vs "we have no data for it"    → Paper wins: derive it, or render the product's
+                                       own empty state, or record a conflict. Never drop it.
 Paper vs existing application UI     → Paper wins for UI.
                                        Application architecture wins for non-visual implementation.
 Paper vs a recorded product decision → the decision wins. STOP and report.
