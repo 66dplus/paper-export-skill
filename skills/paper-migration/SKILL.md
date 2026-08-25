@@ -83,6 +83,12 @@ the page back to phase 2, then 3, then 4 again — never forward.
 | 4 | [04_HUMAN_REVIEW.md](04_HUMAN_REVIEW.md) |
 | 5 | [05_FINALIZATION.md](05_FINALIZATION.md) |
 
+**Read [07_METHOD_THAT_WORKED.md](07_METHOD_THAT_WORKED.md) before phase 2.** It is the one page
+written *after* a migration that passed owner review, and it records what produced that — a
+reference rendered in the same browser and validated against the design file, anchor-based
+comparison, and fixing by cause instead of by finding. The three attempts before it spent more
+effort, not less.
+
 **At the start of every session:** read `.paper-migration-state.json` first and resume from exactly where
 it says the work stopped. Do not re-analyse everything from scratch.
 
