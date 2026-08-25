@@ -8,6 +8,51 @@ The first implementation pass reproduces the Paper UI and **nothing else**.
 
 ---
 
+# Two passes, and a checkpoint between them
+
+The transfer and the wiring are separate passes. The gap between them is the only place where the
+structure can still be proven against the design, because after data goes in, "this node is missing"
+and "this field is empty" become indistinguishable.
+
+```text
+PASS A — TRANSFER    Paper node tree → markup, 1:1.
+                     No data. No refactor. No component boundaries invented for tidiness.
+                     The artboard's own static text stays in place.
+        ↓
+   CHECKPOINT        node inventory complete (every Paper id renders) AND geometry matches
+        ↓
+PASS B — WIRE        static text → real fields, node by node; geometry re-checked after
+```
+
+## Why the checkpoint is not optional
+
+Done as one pass, the work is a chain of transformations, each one lossy:
+
+```text
+Paper DOM → agent reads it → agent rewrites it → agent splits it into components → agent binds data
+```
+
+Four hops. A badge that vanishes somewhere in the middle — folded into its parent "because it's
+simpler", or dropped when the data binding turned out to be null — leaves no trace of which hop lost
+it. The agent then reports the section as transferred, because from inside the chain it was.
+
+With the checkpoint, PASS A has exactly one success condition — *the same nodes, in the same boxes* —
+and it is machine-checkable ([06_PARITY_HARNESS.md](06_PARITY_HARNESS.md)). Whatever breaks in PASS B
+is then provably a wiring defect, not a transfer defect, and the two never get confused again.
+
+## What PASS B may not do
+
+Wiring replaces **values**. It does not get to change what exists:
+
+```text
+allowed   static "Cala Goloritzé" → {beach.name}
+allowed   static "from €95/night" → {formatPrice(stay.priceFrom)}
+forbidden removing the price node because this record has no price
+          → render the node's empty state; see "no UI deletion either" below
+```
+
+---
+
 # "UI only" does not mean "inert"
 
 The line above is about *business logic*, not about whether the page works. Read as "no behaviour

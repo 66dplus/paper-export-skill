@@ -35,6 +35,38 @@ Nine of ten are **geometry or non-text nodes**. One is a node the agent deleted 
 
 ## 2. Why the agent's eval could not see them
 
+### RC0 — The skill told the agent to use the lossy extraction format
+
+This one is upstream of everything else, and it is the skill's own fault.
+
+`01_DISCOVERY.md` said:
+
+```text
+React + Tailwind project
+→ use Paper JSX with the Tailwind representation
+```
+
+`get_jsx(format: "tailwind")` returns **lookups into Paper's theme**, not values. `px-7` means
+whatever `--spacing-7` is in the design file — 64px there, 28px in a default Tailwind scale. The class
+copies across cleanly, compiles, lints, and moves **every section on the page**.
+
+That single mismatch is the mechanical origin of the owner's row 3 — *«отступ нарушен почти везде»*.
+Not many defects: one defect, rendered everywhere. And it is invisible per element, because each
+element still sits correctly beside its own neighbour.
+
+The instruction was not wrong about wanting Tailwind in a Tailwind repo. It was wrong to stop there —
+it never said *prove the two themes agree first*. Fixed: extraction defaults to `inline-styles`
+(absolute values, no theme to disagree with), and shipping utility classes now requires a blocking
+token-parity table before any markup is transferred.
+
+### RC0b — Transfer and wiring happened in one pass
+
+Structure was never proven on its own. Once real data was bound, *"this node is missing"* and *"this
+field is empty"* became the same observation — which is precisely how rows 7 and 8 (hotel badges,
+prices, activity chips) got filed as data gaps instead of defects. Fixed: PASS A transfers 1:1 with
+the artboard's own static text, a machine checkpoint proves inventory + geometry, and only then does
+PASS B replace values.
+
 ### RC1 — The parity harness compared text, not geometry
 
 The agent built `text-audit.mjs`: it walks text leaves on both sides, matches them by string, and
@@ -101,6 +133,8 @@ a gate.
 
 | RC | Change |
 |---|---|
+| 0 | **Extraction defaults to `inline-styles`**; shipping utility classes requires a blocking **token-parity table** first — [01_DISCOVERY.md](../skills/paper-migration/01_DISCOVERY.md) |
+| 0b | **Transfer and wiring are two passes with a machine checkpoint between them** — [02_IMPLEMENTATION.md](../skills/paper-migration/02_IMPLEMENTATION.md) |
 | 1 | **Geometry diff is mandatory** and defines the phase-3 verdict — [06_PARITY_HARNESS.md](../skills/paper-migration/06_PARITY_HARNESS.md) |
 | 2 | **Direction A runs over the Paper node tree**, not over strings — every node id must map or be recorded |
 | 3 | **A "data gap" claim needs its probe attached** (endpoint · field · observed value) or it is a defect |

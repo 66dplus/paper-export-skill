@@ -11,17 +11,29 @@ answers it. Without the instrument, phase 3 has an opinion, not a result.
 
 ## 1. What the harness must compare
 
-Three passes, in this order. **A later pass may not run while an earlier one has open findings** —
-text styling on a node that sits in the wrong box is noise.
+Four passes, in this order. **A later pass may not run while an earlier one has open findings** —
+text styling on a node that sits in the wrong box is noise, and a box measured against a mistranslated
+token is noise twice over.
 
 ```text
+PASS 0  TOKENS      every utility class the export uses resolves to the same number on both sides
 PASS 1  STRUCTURE   every Paper node exists, once, in the right order
 PASS 2  GEOMETRY    every matched node's box and its container's spacing
 PASS 3  APPEARANCE  type, colour, border, radius, shadow on matched nodes
 ```
 
 Most migration defects live in PASS 2. It is the one agents skip, because text is easy to extract and
-boxes are not.
+boxes are not. Most of *those* defects are caused by PASS 0 — one mistranslated token moves every
+section at once, and pass 2 then reports the same cause forty times.
+
+## PASS 0 — tokens (runs once, before any markup is transferred)
+
+`get_jsx(format: "tailwind")` returns **lookups into Paper's theme**, not values. Print both sides for
+every class the export uses and resolve every MISMATCH before implementation — the full contract and
+the table format are in [01_DISCOVERY.md](01_DISCOVERY.md) §Token-parity check.
+
+Extracting with `format: "inline-styles"` skips this pass by construction: absolute values have no
+theme to disagree with. That is the reason it is the default extraction format.
 
 ---
 
@@ -181,6 +193,7 @@ mapping from the same eyes that missed it the first time.
 Before phase 3 may report anything:
 
 ```text
+✓ pass 0 ran (or was skipped by extracting inline-styles); zero token MISMATCH
 ✓ reference rendered at artboard width, in a browser, from the design (not from a stale export)
 ✓ pass 1 ran over the node tree; every node MAPPED or DEFERRED-with-reason
 ✓ pass 2 ran; container spacing compared before children; overflow AND bleed both checked

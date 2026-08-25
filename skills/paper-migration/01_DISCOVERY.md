@@ -35,21 +35,82 @@ Do not assume the styling system from filenames alone. Inspect real usage.
 
 ## Paper styling format
 
-Use the styling representation that is appropriate for the project **and** available from Paper.
+Paper exports the same design two ways, and the choice is **not** cosmetic:
 
 ```text
-React + Tailwind project
-→ use Paper JSX with the Tailwind representation
+format: "inline-styles"   → absolute values   style={{ paddingInline: '64px' }}
+format: "tailwind"        → class names       className="px-7"
 ```
 
+### A class name is not a value. It is a lookup into Paper's theme.
+
+`px-7` in a Paper export means whatever `--spacing-7` is **in that design file**. In a default
+Tailwind scale it means 28px. In the file that produced this rule it meant 64px. Copy the class into
+an app whose theme differs and every transferred value silently changes: the class exists, the code
+compiles, the linter is happy, and the page is wrong by 2.3×.
+
+This is the most expensive failure mode in the whole skill, because it is **invisible per element and
+global in effect** — one theme mismatch moves every section on the page, and each element still looks
+correct beside its own neighbour. The earlier version of this file said *"React + Tailwind project →
+use the Tailwind representation"* and stopped there. That instruction produced a page where every
+section head sat at 28px instead of 64px, and no gate could see it.
+
+### Default: extract with `inline-styles`
+
 ```text
-React + CSS project
-→ use the closest direct Paper export available
-→ do not manually reconstruct the entire stylesheet from computed values
+get_jsx(nodeId, format: "inline-styles")
 ```
+
+Those numbers are the **contract**. Whatever representation the app finally ships, parity is measured
+against the numbers, never against the class names.
+
+### Then choose what the app ships — and prove it either way
+
+```text
+A. Ship the absolute values (inline styles / a scoped stylesheet built from them)
+   + deterministic, no theme to disagree with
+   − cannot express breakpoints, hover/focus states
+   − many repos' lint gates forbid inline styles in product source
+
+B. Ship the project's own utility classes
+   + responsive variants, states, and the repo's conventions come for free
+   − REQUIRES the token-parity proof below before a single component is written
+```
+
+Most real migrations end at B — a responsive page needs media queries, and a repo gate usually bans
+inline styles. That is fine. What is not fine is arriving at B **without the proof**.
+
+### Token-parity check (blocking, before implementation)
+
+Collect every utility class the export uses, and print both sides:
+
+```text
+class        Paper value      app value      verdict
+px-7         64px             28px           MISMATCH  ← blocks implementation
+gap-3        14px             12px           MISMATCH
+text-body    15px             15px           ok
+rounded-panel 4px             4px            ok
+```
+
+Any MISMATCH is resolved **before** transferring markup, by one of:
+
+* porting Paper's `@theme` block verbatim into a scope the migrated page lives in, or
+* rewriting the class to the app's equivalent that resolves to Paper's number, or
+* falling back to the absolute value for that property.
+
+Resolving it afterwards means finding it as forty separate visual defects instead of four table rows.
+
+### Large or deep artboards
+
+Extract and transfer **per section**, not per artboard. A 8000px-tall artboard exported in one call
+produces a tree too large to transfer attentively, and the nodes that go missing are the ones nobody
+looked at twice. One Paper frame → one extraction → one component → one parity run.
+
+---
 
 Never blindly convert between styling systems.
 Never regenerate an existing Paper representation because another format looks cleaner.
+Never let a class name stand in for a number that has not been checked.
 
 ---
 
