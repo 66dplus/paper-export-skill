@@ -1,7 +1,7 @@
 {
   "name": "paper-export-skill",
   "version": "3.1.0",
-  "description": "Global Claude Code skill: a phase-gated, state-machine-driven workflow for migrating a Paper design into a React app — one page per human-review cycle, no redesign.",
+  "description": "Two global Claude Code skills for turning Paper designs into React: paper-migration (redesign an existing screen) and paper-new-screen (build a screen that does not exist yet).",
   "license": "MIT",
   "author": "DMITRII RYBKIN",
   "type": "module",
@@ -9,11 +9,12 @@
     "paper-export-skill": "bin/cli.js"
   },
   "files": [
-    "bin",
-    "skills",
-    "opencode",
     "LICENSE",
-    "README.md"
+    "README.md",
+    "bin",
+    "opencode",
+    "scripts",
+    "skills"
   ],
   "keywords": [
     "claude",
@@ -40,6 +41,7 @@
     "node": ">=18"
   },
   "scripts": {
+    "check": "node scripts/check-skills.mjs",
     "install:skill": "node bin/cli.js install",
     "uninstall:skill": "node bin/cli.js uninstall"
   }

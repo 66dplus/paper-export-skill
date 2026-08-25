@@ -48,6 +48,15 @@ from exactly that point instead of re-analysing the project.
         "5_finalization":    { "status": "pending" }
       },
       "out_of_scope_states": ["error — no Paper design"],
+      "design_conflicts": [
+        {
+          "node": "IN-0 · Media manager header",
+          "artboard_shows": "a media manager on the handoff screen",
+          "decision": "owner 2026-08-21 — photo management must not be duplicated; it lives in the pipeline",
+          "recorded_in": "content-ops-combined-launch.contract.test.ts",
+          "action": "not transferred; test untouched; raised with the owner"
+        }
+      ],
       "last_updated": "2026-08-24T16:00:00+04:00"
     },
     "login":   { "status": "approved" },
@@ -63,6 +72,16 @@ begun — the list of pages is itself part of the plan.
 ---
 
 ## 3. Allowed values
+
+`design_conflicts` is **not** `out_of_scope_states`. They answer different questions:
+
+```text
+out_of_scope_states  — Paper defines no design for this state
+design_conflicts     — Paper defines one, and it contradicts a decision already taken
+```
+
+The second never resolves itself by transferring the node. Leave it out, leave any test that encodes
+the decision alone, and report it — see **Conflict resolution** in [SKILL.md](SKILL.md).
 
 **Page `status`**
 
